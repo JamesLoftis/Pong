@@ -22,7 +22,3 @@ This is a simple Pong game created using the MonoGame framework.
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
-## Acknowledgments
-
-- This game was created using the MonoGame Pong tutorial found [here](http://rbwhitaker.wikidot.com/monogame-pong-tutorial).
