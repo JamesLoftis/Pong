@@ -15,7 +15,7 @@ namespace Pong
         private Score player1Score;
         private Score player2Score;
         private SpriteFont font;
-        private const int WinCondition = 2;
+        private const int WinCondition = 1;
         private bool IsGameOver;
         private readonly Random random;
         private Color BackgroundColor;
@@ -23,6 +23,9 @@ namespace Pong
         private const int PadlleWidth = 10;
         private const int PadlleHeight = 100;
         private bool IsCKeyPressed;
+        private const int CoolDownTimerValue = 5;
+        private int CoolDownTimer;
+        private bool IsPaddleCollision;
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this);
@@ -30,6 +33,8 @@ namespace Pong
             IsMouseVisible = true;
             random = new Random();
             IsCKeyPressed = false;
+            CoolDownTimer = CoolDownTimerValue;
+            IsPaddleCollision= false;
         }
 
         private void SetBackGroundColor()
@@ -87,36 +92,38 @@ namespace Pong
             {
                 RestartGame();
             }
-            //if c key is pressed and then released change background color
-
-            if (Keyboard.GetState().IsKeyDown(Keys.C))
+            else if (!IsGameOver)
             {
-                IsCKeyPressed= true;
+                //if c key is pressed and then released change background color
+
+                if (Keyboard.GetState().IsKeyDown(Keys.C))
+                {
+                    IsCKeyPressed = true;
+                }
+                else if (IsCKeyPressed && Keyboard.GetState().IsKeyUp(Keys.C))
+                {
+                    IsCKeyPressed = false;
+                    SetBackGroundColor();
+                }
+                MovePaddleIfKeysDown();
+
+                AI();
+
+                //detect ball collision with top and bottom of screen and reverse direction
+                VerticalScreenCollision();
+
+                //detect ball collision with paddles and reverse direction
+                PaddCollision();
+
+                ball.Update();
+                DetectScore();
+
+                //create win condition if player1 or player2 score is 10
+                if (player1Score.score == WinCondition || player2Score.score == WinCondition)
+                {
+                    GameOver();
+                }
             }
-            else if (IsCKeyPressed && Keyboard.GetState().IsKeyUp(Keys.C))
-            {
-                IsCKeyPressed= false;
-                SetBackGroundColor();
-            }
-            MovePaddleIfKeysDown();
-
-            AI();
-
-            //detect ball collision with top and bottom of screen and reverse direction
-            VerticalScreenCollision();
-
-            //detect ball collision with paddles and reverse direction
-            PaddCollision();
-
-            ball.Update();
-            DetectScore();
-
-            //create win condition if player1 or player2 score is 10
-            if (player1Score.score == WinCondition || player2Score.score == WinCondition)
-            {
-                GameOver();
-            }
-
             base.Update(gameTime);
         }
 
@@ -134,13 +141,27 @@ namespace Pong
 
         private void PaddCollision()
         {
-            if (ball.Rectangle.Intersects(paddle1.Rectangle))
+            if (CoolDownTimer > 0 && !IsPaddleCollision)
             {
-                ball.movement.X *= -1;
+                if (ball.Rectangle.Intersects(paddle1.Rectangle) || ball.Rectangle.Contains(paddle1.Rectangle))
+                {
+                    ball.movement.X *= -1;
+                    IsPaddleCollision= true;
+                }
+                else if (ball.Rectangle.Intersects(paddle2.Rectangle) || ball.Rectangle.Contains(paddle1.Rectangle))
+                {
+                    ball.movement.X *= -1;
+                    IsPaddleCollision = true;
+                }
             }
-            else if (ball.Rectangle.Intersects(paddle2.Rectangle))
+            else if (IsPaddleCollision && CoolDownTimer > 0)
             {
-                ball.movement.X *= -1;
+                 CoolDownTimer--;
+            }
+            else if (IsPaddleCollision)
+            {
+                IsPaddleCollision = false;
+                CoolDownTimer = CoolDownTimerValue;
             }
         }
 
@@ -247,7 +268,7 @@ namespace Pong
                 //set RESULT to winner or loser depending on score
                 string RESULT = player1Score.score >= WinCondition ? "You Win!" : player2Score.score >= WinCondition ? "You Lose!" : "Press SPACE to start...";
                 _spriteBatch.Begin();
-                _spriteBatch.DrawString(font, $"{RESULT}", new Vector2(GraphicsDevice.Viewport.Width / 2, GraphicsDevice.Viewport.Height / 2), Color.White);
+                _spriteBatch.DrawString(font, $"{RESULT}", new Vector2((GraphicsDevice.Viewport.Width / 2) - RESULT.Length, GraphicsDevice.Viewport.Height / 2), Color.White);
 
                 _spriteBatch.End();
             }
