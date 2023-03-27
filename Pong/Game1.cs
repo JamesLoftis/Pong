@@ -134,11 +134,11 @@ namespace Pong
 
         private void PaddCollision()
         {
-            if (ball.Position.X <= paddle1.Position.X + paddle1.Width && ball.Position.Y >= paddle1.Position.Y && ball.Position.Y <= paddle1.Position.Y + paddle1.Height)
+            if (ball.Rectangle.Intersects(paddle1.Rectangle))
             {
                 ball.movement.X *= -1;
             }
-            else if (ball.Position.X >= paddle2.Position.X - ball.SideLength && ball.Position.Y >= paddle2.Position.Y && ball.Position.Y <= paddle2.Position.Y + paddle2.Height)
+            else if (ball.Rectangle.Intersects(paddle2.Rectangle))
             {
                 ball.movement.X *= -1;
             }
@@ -228,10 +228,10 @@ namespace Pong
 
                 // Draw the paddles
                 _spriteBatch.Draw(paddle1.texture, new Vector2(paddle1.Position.X, paddle1.Position.Y), paddle1.Rectangle, Color.White);
-                _spriteBatch.Draw(paddle2.texture, new Vector2(paddle2.Position.X, paddle2.Position.Y), new Rectangle(0, 0, paddle2.Width, paddle2.Height), Color.White);
+                _spriteBatch.Draw(paddle2.texture, new Vector2(paddle2.Position.X, paddle2.Position.Y), paddle2.Rectangle, Color.White);
 
                 // Draw the ball
-                _spriteBatch.Draw(ball.Texture, new Vector2(ball.Position.X, ball.Position.Y), new Rectangle(0, 0, ball.SideLength, ball.SideLength), Color.White);
+                _spriteBatch.Draw(ball.Texture, new Vector2(ball.Position.X, ball.Position.Y), ball.Rectangle, Color.White);
 
                 //draw score for player1
 
@@ -329,7 +329,7 @@ namespace Pong
         public float Acceleration { get; }
 
         public Point Position => rectangle.Location;
-
+        public Rectangle Rectangle => rectangle;
         //size
         public int SideLength { get; }
 
@@ -356,7 +356,7 @@ namespace Pong
         {
             acceleration += accelerationValue;
             rectangle.X = (int)(rectangle.X + movement.X * acceleration);
-            rectangle.Y = (int)(rectangle.Y + movement.X * acceleration);
+            rectangle.Y = (int)(rectangle.Y + movement.Y * acceleration);
         }
 
         //method to reset ball position and movement with random directional vector
